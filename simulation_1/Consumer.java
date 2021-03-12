@@ -32,6 +32,7 @@ public class Consumer extends VaccineHandlingThread {
                 		random.nextInt(Params.CONSUMER_MAX_SLEEP - 
                 				Params.CONSUMER_MIN_SLEEP);
                 sleep(sleepTime);
+//                throw new InterruptedException(); // TODO: clean up
             } catch (InterruptedException e) {
                 this.interrupt();
             }

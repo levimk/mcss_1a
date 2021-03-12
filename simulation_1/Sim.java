@@ -14,6 +14,8 @@ public class Sim {
         Consumer consumer = new Consumer(carousel);
         CarouselDrive driver = new CarouselDrive(carousel);
 
+        // TODO: InspectionBay
+
         // start threads
         consumer.start();
         producer.start();
