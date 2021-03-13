@@ -46,7 +46,8 @@ public class Vial {
     /**
      * Set defective status of vial to true.
      */
-    public void setDefective() {
+    // TODO: my change = setDefective => addDefect
+    public void addDefect() {
         defective = true;
     } 
     
@@ -60,7 +61,8 @@ public class Vial {
     /**
      * Flag that the vial has been inspected.
      */
-    public void setInspected() {
+    // TODO: my change = setInspect => inspect
+    public void inspect() {
     	inspected = true;
     }
     
@@ -74,9 +76,8 @@ public class Vial {
     /**
      * Tag this vial for destruction 
      */
-    public void setTagged() {
-        tagged = true;
-    }
+    // TODO: my change = setTag => tag
+    public void tag() { tagged = true; }
     
     /**
      * @return true if and only if this vial is tagged for destruction
