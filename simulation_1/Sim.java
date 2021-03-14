@@ -9,6 +9,8 @@ public class Sim {
     public static void main(String[] args) {
         
     	// Create system components
+        Object lock = new Object();
+        // TODO: insert the locks
         Carousel carousel = new Carousel();
         Producer producer = new Producer(carousel);
         Consumer consumer = new Consumer(carousel);

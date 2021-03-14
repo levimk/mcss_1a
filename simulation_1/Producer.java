@@ -8,13 +8,15 @@ public class Producer extends VaccineHandlingThread {
 
     // the carousel to which the producer puts vials
     protected Carousel carousel;
+    protected Object lock;
 
     /**
      * Create a new producer to feed a given carousel.
      */
-    Producer(Carousel carousel) {
+    Producer(Carousel carousel, Object lock) {
     	super();
         this.carousel = carousel;
+        this.lock = lock;
     }
 
     /**

@@ -1,13 +1,14 @@
 /**
- * The carousel holds vials of vaccine and rotates them from the compartment
- * at position 0, through to the scanner compartment, where they are 
+ * The carousel holds vials of vaccine and rotates them from the compartments
+ * at position 0, through to the scanner compartments, where they are
  * scanned and potentially removed by a shuttle for further inspection, 
- * through to the final compartment where they are taken off the carousel.
+ * through to the final compartments where they are taken off the carousel.
  */
 public class Carousel {
 
     // the items in the carousel segments
-    protected Vial[] compartment;
+    protected Vial[] compartments;
+    protected Object lock;
 
     // to help format output trace
     final private static String indentation = "                  ";
@@ -15,10 +16,11 @@ public class Carousel {
     /**
      * Create a new, empty carousel, initialised to be empty.
      */
-    public Carousel() {
-        compartment = new Vial[Params.CAROUSEL_SIZE];
-        for (int i = 0; i < compartment.length; i++) {
-            compartment[i] = null;
+    public Carousel(Object lock) {
+        this.lock = lock;
+        compartments = new Vial[Params.CAROUSEL_SIZE];
+        for (int i = 0; i < compartments.length; i++) {
+            compartments[i] = null;
         }
     }
 
@@ -30,91 +32,95 @@ public class Carousel {
      * @throws InterruptedException
      *            if the thread executing is interrupted.
      */
-    public synchronized void putVial(Vial vial)
+    public synchronized void putVial(Vial vial, int compartmentI)
             throws InterruptedException {
 
     	// while there is another vial in the way, block this thread
-        while (compartment[0] != null) {
-            wait();
-        }
+        while (compartments[compartmentI] != null) lock.wait();
 
         // insert the element at the specified location
-        compartment[0] = vial;
+        compartments[compartmentI] = vial;
 
         // make a note of the event in output trace
         System.out.println(vial + " inserted");
 
         // notify any waiting threads that the carousel state has changed
-        notifyAll();
+        lock.notifyAll();
     }
 
     /**
-     * Remove a vial from the final compartment of the carousel
+     * Remove a vial from the final compartments of the carousel
      * 
      * @return the removed vial
      * @throws InterruptedException
      *             if the thread executing is interrupted
      */
-    public synchronized Vial getVial() throws InterruptedException {
+    public Vial getVial(int compartmentI) throws InterruptedException {
+        synchronized (lock) {
+            // the vial to be removed
+            Vial vial;
 
-    	// the vial to be removed
-        Vial vial;
+            // while there is no vial in the final compartments, block this thread
+            if (compartments[compartmentI] == null) {
+                try {
+                    lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
 
-        // while there is no vial in the final compartment, block this thread
-        while (compartment[compartment.length - 1] == null) {
-            wait();
+            // get the vial
+            vial = compartments[compartmentI];
+            compartments[compartmentI] = null;
+
+            // make a note of the event in output trace
+            System.out.print(indentation + indentation);
+            System.out.println(vial + " removed");
+
+            // notify any waiting threads that the carousel has changed
+            lock.notifyAll(); // TODO: will this cause issues? What if the next thread to execute needs the vial first?
+            return vial;
         }
-
-        // get the vial
-        vial = compartment[compartment.length-1];
-        compartment[compartment.length - 1] = null;
-
-        // make a note of the event in output trace
-        System.out.print(indentation + indentation);
-        System.out.println(vial + " removed");
-
-        // notify any waiting threads that the carousel has changed
-        notifyAll();
-        return vial;
     }
  
     /**
      * Rotate the carousel one position.
      * 
      * @throws OverloadException
-     *             if a vial is rotated beyond the final compartment.
+     *             if a vial is rotated beyond the final compartments.
      * @throws InterruptedException
      *             if the thread executing is interrupted.
      */
     public synchronized void rotate() 
             throws InterruptedException, OverloadException {
-        // if there is in the final compartment, or the carousel is empty,
-        // or a vial needs to be removed for inspection, do not move the carousel
+        // if there is a vial in the final compartments,
+        // or if the carousel is empty,
+        // or if a vial needs to be removed for inspection, do not move the carousel
         while (isEmpty() || 
-        		compartment[compartment.length-1] != null) {
-            wait();
+        		compartments[compartments.length-1] != null) {
+            lock.wait();
         }
 
-        // double check that a vial cannot be rotated beyond the final compartment
-        if (compartment[compartment.length-1] != null) {
-            String message = "vial rotated beyond final compartment";
+        // double check that a vial cannot be rotated beyond the final compartments
+        if (compartments[compartments.length-1] != null) {
+            String message = "vial rotated beyond final compartments";
             throw new OverloadException(message);
         }
 
         // move the elements along, making position 0 null
-        for (int i = compartment.length-1; i > 0; i--) {
-            if (this.compartment[i-1] != null) {
+        for (int i = compartments.length-1; i > 0; i--) {
+            if (this.compartments[i-1] != null) {
                 System.out.println(
                 		indentation +
-                		this.compartment[i-1] +
+                		this.compartments[i-1] +
                         " [ c" + (i) + " -> c" + (i+1) +" ]");
             }
-            compartment[i] = compartment[i-1];
+            compartments[i] = compartments[i-1];
         }
-        compartment[0] = null;
+        compartments[0] = null;
         
         // notify any waiting threads that the carousel has changed
-        notifyAll();
+        lock.notifyAll();
     }
  
     /**
@@ -122,8 +128,8 @@ public class Carousel {
      * @return true if the carousel is currently empty, otherwise false
      */
     private boolean isEmpty() {
-        for (int i = 0; i < compartment.length; i++) {
-            if (compartment[i] != null) {
+        for (int i = 0; i < compartments.length; i++) {
+            if (compartments[i] != null) {
                 return false;
             }
         }
@@ -131,7 +137,7 @@ public class Carousel {
     }
     
     public String toString() {
-        return java.util.Arrays.toString(compartment);
+        return java.util.Arrays.toString(compartments);
     }
 
 }

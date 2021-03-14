@@ -9,12 +9,14 @@ public class Consumer extends VaccineHandlingThread {
 
     // the carousel from which the consumer takes vials
     protected Carousel carousel;
+    protected Object lock;
 
     /**
      * Create a new Consumer that consumes from a carousel
      */
-    public Consumer(Carousel carousel) {
+    public Consumer(Carousel carousel, Object lock) {
         super();
+        this.lock = lock;
         this.carousel = carousel;
     }
 

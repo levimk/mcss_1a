@@ -7,12 +7,14 @@ public class CarouselDrive extends VaccineHandlingThread {
 
     // the carousel to be handled
     protected Carousel carousel;
+    protected Object lock;
 
     /**
      * Create a new CarouselDrive with a carousel to rotate.
      */
-    public CarouselDrive(Carousel carousel) {
+    public CarouselDrive(Carousel carousel, Object lock) {
         super();
+        this.lock = lock;
         this.carousel = carousel;
     }
 
