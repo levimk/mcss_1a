@@ -9,14 +9,11 @@ public class Consumer extends VaccineHandlingThread {
 
     // the carousel from which the consumer takes vials
     protected Carousel carousel;
-    protected Object lock;
-
     /**
      * Create a new Consumer that consumes from a carousel
      */
-    public Consumer(Carousel carousel, Object lock) {
+    public Consumer(Carousel carousel) {
         super();
-        this.lock = lock;
         this.carousel = carousel;
     }
 
@@ -26,7 +23,7 @@ public class Consumer extends VaccineHandlingThread {
     public void run() {
         while (!isInterrupted()) {
             try {
-                carousel.getVial();
+                carousel.getVial(carousel.getLength() - 1);
 
                 // let some time pass ...
                 Random random = new Random();

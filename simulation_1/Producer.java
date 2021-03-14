@@ -8,15 +8,13 @@ public class Producer extends VaccineHandlingThread {
 
     // the carousel to which the producer puts vials
     protected Carousel carousel;
-    protected Object lock;
 
     /**
      * Create a new producer to feed a given carousel.
      */
-    Producer(Carousel carousel, Object lock) {
+    Producer(Carousel carousel) {
     	super();
         this.carousel = carousel;
-        this.lock = lock;
     }
 
     /**
@@ -27,7 +25,7 @@ public class Producer extends VaccineHandlingThread {
             try {
                 // put a new vial in the carousel
                 Vial vial = Vial.getInstance();
-                carousel.putVial(vial);
+                carousel.putVial(vial, 0);
 
                 // sleep for a bit....
                 Random random = new Random();

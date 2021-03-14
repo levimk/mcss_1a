@@ -19,7 +19,7 @@ public class Vial {
     protected int id;
 
     // the next ID that can be allocated
-    protected static int nextId = 1;
+    protected static int nextId = 1; // TODO: will this cause issues?
 
     // create a new vial with a given ID
     private Vial(int id) {
@@ -34,7 +34,7 @@ public class Vial {
      */
     public static Vial getInstance() {
         return new Vial(nextId++);
-    }
+    } // TODO: will this cause issues?
 
     /**
      * @return the ID of this vial.

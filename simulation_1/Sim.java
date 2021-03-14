@@ -9,12 +9,16 @@ public class Sim {
     public static void main(String[] args) {
         
     	// Create system components
-        Object lock = new Object();
-        // TODO: insert the locks
         Carousel carousel = new Carousel();
+
         Producer producer = new Producer(carousel);
+        producer.setName("Producer Thread");
+
         Consumer consumer = new Consumer(carousel);
+        consumer.setName("Consumer Thread");
+
         CarouselDrive driver = new CarouselDrive(carousel);
+        driver.setName("Driver Thread");
 
         // TODO: InspectionBay
 
