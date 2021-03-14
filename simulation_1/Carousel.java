@@ -103,8 +103,9 @@ public class Carousel {
                 // if there is a vial in the final compartments,
                 // or if the carousel is empty,
                 // or if a vial needs to be removed for inspection, do not move the carousel
+                // TODO: compartment three case not being dealt with
                 while (isEmpty() ||
-                        compartments[compartments.length-1] != null) {
+                       !isLastCompartmentEmpty()) {
                     lock.wait();
                 }
             } catch (InterruptedException e) {
@@ -148,6 +149,15 @@ public class Carousel {
 
     public int getLength() {
         return compartments.length;
+    }
+
+    // TODO: implement
+    private Boolean isCompartmentThreeReady() {
+        return false;
+    }
+
+    private Boolean isLastCompartmentEmpty() {
+        return compartments[compartments.length - 1] == null;
     }
     
     public String toString() {
