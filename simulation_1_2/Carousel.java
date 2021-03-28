@@ -75,8 +75,7 @@ public class Carousel {
 
         if (i == length - 1) {
             // make a note of the event in output trace
-            System.out.print(indentation + indentation);
-            System.out.println(vial + " removed");
+            System.out.println(indentation + indentation + vial + " removed");
         }
 
         // notify any waiting threads that the carousel has changed
@@ -84,35 +83,36 @@ public class Carousel {
         return vial;
     }
 
-    public synchronized Boolean isDefectiveVial(int i) throws InterruptedException {
-
-        // while there is no vial in the final compartment, block this thread
-        while (compartment[i] == null) {
+    public synchronized Vial getVialForInspection(int i) throws InterruptedException {
+        Vial vial;
+        while (compartment[i] == null || // the compartment is empty
+                !compartment[i].isDefective() || // the vial in the compartment is not defective
+                compartment[i].isInspected()) { // the vial in the compartment has been inspected
             wait();
         }
-
-        // get the vial
-        Boolean isDefective = compartment[i].isDefective();
-
-        // notify any waiting threads that the carousel has changed
+        vial = compartment[i];
+        compartment[i] = null;
         notifyAll();
-        return isDefective;
+        return vial;
     }
 
-    public synchronized Boolean isInspectedVial(int i) throws InterruptedException {
-
-        // while there is no vial in the final compartment, block this thread
-        while (compartment[i] == null) {
-            wait();
-        }
-
-        // get the vial
-        Boolean isInspected = compartment[i].isInspected();
-
-        // notify any waiting threads that the carousel has changed
-        notifyAll();
-        return isInspected;
-    }
+//    public synchronized Boolean isVialNeedsInspection(int i) throws InterruptedException {
+//
+//        // while there is no vial in the final compartment, block this thread
+//        while (compartment[i] == null &&
+//               !compartment[i].isDefective() &&
+//                !compartment[i].isInspected()) {
+//            wait();
+//        }
+//
+//        // get the vial
+//        Boolean isDefective = compartment[i].isDefective();
+//        Boolean isInspected = compartment[i].isInspected();
+//
+//        // notify any waiting threads that the carousel has changed
+//        notifyAll();
+//        return isDefective && !isInspected;
+//    }
 
     /**
      * Rotate the carousel one position.

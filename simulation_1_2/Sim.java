@@ -12,13 +12,15 @@ public class Sim {
         Carousel carousel = new Carousel();
         Producer producer = new Producer(carousel);
         Consumer consumer = new Consumer(carousel);
-        Shuttle shuttle = new Shuttle(carousel);
+        InspectionBay inspectionBay = new InspectionBay();
+        Shuttle shuttle = new Shuttle(carousel, inspectionBay);
         CarouselDrive driver = new CarouselDrive(carousel);
 
         // start threads
         consumer.start();
         producer.start();
         shuttle.start();
+        inspectionBay.start();
         driver.start();
 
         // check all threads still live

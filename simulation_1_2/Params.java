@@ -23,11 +23,11 @@ public class Params {
 	// the amount of time it takes the shuttle to move 
 	// between the carousel and the inspection bay
 	public final static int SHUTTLE_TIME = 900;
-	
+
 	// the amount of time it takes to inspect a vial
-	public final static int INSPECT_TIME = 5000;
+	public final static int INSPECT_TIME = 500;
 	
 	// probability that a vial is defective
-	public final static double DEFECT_PROB = 0.3;
+	public final static double DEFECT_PROB = 1;
 	
 }
