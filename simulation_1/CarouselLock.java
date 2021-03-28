@@ -9,4 +9,8 @@ public class CarouselLock {
         }
         return instance;
     }
+
+    public void whoHasTheLock() {
+        System.out.println(Thread.currentThread().getName() + " has the lock");
+    }
 }

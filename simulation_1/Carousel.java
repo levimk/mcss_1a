@@ -1,3 +1,5 @@
+import java.util.Arrays;
+
 /**
  * The carousel holds vials of vaccine and rotates them from the compartments
  * at position 0, through to the scanner compartments, where they are
@@ -8,7 +10,7 @@ public class Carousel {
 
     // the items in the carousel segments
     protected Vial[] compartments;
-    protected CarouselLock lock;
+    protected static CarouselLock lock;
 
     // to help format output trace
     final private static String indentation = "                  ";
@@ -19,9 +21,7 @@ public class Carousel {
     public Carousel() {
         this.lock = CarouselLock.getInstance();
         compartments = new Vial[Params.CAROUSEL_SIZE];
-        for (int i = 0; i < compartments.length; i++) {
-            compartments[i] = null;
-        }
+        Arrays.fill(compartments, null);
     }
 
     /**
@@ -34,13 +34,26 @@ public class Carousel {
      */
     public synchronized void putVial(Vial vial, int compartmentI)
             throws InterruptedException {
+        System.out.println("putVial(" + compartmentI + ") executing on:  " + Thread.currentThread().getName());
+        System.out.println("Entering synchronised block - putVial() - state = " + Thread.currentThread().getState());
         synchronized (lock) {
-            try {
-                // while there is another vial in the way, block this thread
-                while (compartments[compartmentI] != null) lock.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            System.out.println("ENTERED synchronised block - putVial()");
+
+            // while there is another vial in the way, block this thread
+            while (compartments[compartmentI] != null) {
+                try {
+                    lock.whoHasTheLock();
+                    System.out.println("WAIT " + Thread.currentThread().getName() + " from putVial(" + compartmentI + ")");
+//                    lock.notifyAll();
+                    System.out.println(Thread.currentThread().getName() + " about to wait - " + Thread.currentThread().getState());
+                    lock.wait();
+                    System.out.println("FINISHED WAITING " + Thread.currentThread().getName() + " from putVial(" + compartmentI + ")");
+                    Thread.sleep(Params.CONSUMER_MIN_SLEEP);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
+
             // insert the element at the specified location
             compartments[compartmentI] = vial;
 
@@ -49,6 +62,7 @@ public class Carousel {
 
             // notify any waiting threads that the carousel state has changed
             lock.notifyAll();
+            System.out.println(Thread.currentThread().getName() + " NOTIFIED ALL from putVial()");
         }
     }
 
@@ -60,14 +74,24 @@ public class Carousel {
      *             if the thread executing is interrupted
      */
     public Vial getVial(int compartmentI) throws InterruptedException {
-        synchronized (lock) {
-            // the vial to be removed
-            Vial vial;
+        System.out.println("getVial(" + compartmentI + ") executing on:  " + Thread.currentThread().getName());
 
+        // the vial to be removed
+        Vial vial;
+
+        System.out.println("Entering synchronised block - getVial() - state = " + Thread.currentThread().getState());
+        synchronized (lock) {
+            System.out.println("ENTERED synchronised block - getVial()");
             // while there is no vial in the final compartments, block this thread
             while (compartments[compartmentI] == null) {
                 try {
+                    lock.whoHasTheLock();
+                    System.out.println("WAIT "  + Thread.currentThread().getName() + " from getVial(" + compartmentI + ")");
+                    lock.notifyAll();
+                    System.out.println(Thread.currentThread().getName() + " about to wait - " + Thread.currentThread().getState());
                     lock.wait();
+                    System.out.println("FINISHED WAITING "  + Thread.currentThread().getName() + " from getVial(" + compartmentI + ")");
+                    Thread.sleep(Params.CONSUMER_MIN_SLEEP);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -83,8 +107,10 @@ public class Carousel {
 
             // notify any waiting threads that the carousel has changed
             lock.notifyAll(); // TODO: will this cause issues? What if the next thread to execute needs the vial first?
-            return vial;
+            // lock.notify();
+            System.out.println(Thread.currentThread().getName() + " NOTIFIED ALL from getVial()");
         }
+        return vial;
     }
  
     /**
@@ -97,20 +123,30 @@ public class Carousel {
      */
     public synchronized void rotate() 
             throws InterruptedException, OverloadException {
+        System.out.println("rotate() executing on:  " + Thread.currentThread().getName());
 
+        System.out.println("Entering synchronised block - rotate() - state = " + Thread.currentThread().getState());
         synchronized (lock) {
-            try {
-                // if there is a vial in the final compartments,
-                // or if the carousel is empty,
-                // or if a vial needs to be removed for inspection, do not move the carousel
-                // TODO: compartment three case not being dealt with
-                while (isEmpty() ||
-                       !isLastCompartmentEmpty()) {
+            System.out.println("Who has the lock? #1");
+            lock.whoHasTheLock();
+            while (isEmpty() ||
+                    !isLastCompartmentEmpty()) { // TODO: here is the problem?
+                try {
+                    System.out.println("Who has the lock? #2");
+                    lock.whoHasTheLock();
+                    // if there is a vial in the final compartments,
+                    // or if the carousel is empty,
+                    // or if a vial needs to be removed for inspection, do not move the carousel
+                    // TODO: compartment three case not being dealt with
+
+                    System.out.println(Thread.currentThread().getName() + " about to wait - " + Thread.currentThread().getState());
                     lock.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
             }
+
+            System.out.println("Rotating carousel");
             // double check that a vial cannot be rotated beyond the final compartments
             if (compartments[compartments.length-1] != null) {
                 String message = "vial rotated beyond final compartments";
@@ -139,11 +175,19 @@ public class Carousel {
      * @return true if the carousel is currently empty, otherwise false
      */
     private boolean isEmpty() {
-        for (int i = 0; i < compartments.length; i++) {
-            if (compartments[i] != null) {
+        System.out.println("isEmpty() executing on:  " + Thread.currentThread().getName());
+        for (Vial vial : compartments) {
+            if (vial != null) {
+                System.out.println("Carousel empty? false");
                 return false;
             }
         }
+//        for (int i = 0; i < compartments.length; i++) {
+//            if (compartments[i] != null) {
+//                return false;
+//            }
+//        }
+        System.out.println("Carousel empty? true");
         return true;
     }
 
@@ -152,12 +196,14 @@ public class Carousel {
     }
 
     // TODO: implement
-    private Boolean isCompartmentThreeReady() {
-        return false;
-    }
+//    private Boolean isCompartmentThreeReady() {
+//        return false;
+//    }
 
     private Boolean isLastCompartmentEmpty() {
-        return compartments[compartments.length - 1] == null;
+        Boolean check = compartments[compartments.length - 1] == null;
+        System.out.println("Last compartment empty? " + check);
+        return check;
     }
     
     public String toString() {

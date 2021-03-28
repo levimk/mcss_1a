@@ -10,26 +10,21 @@ public class Sim {
         
     	// Create system components
         Carousel carousel = new Carousel();
-
         Producer producer = new Producer(carousel);
-        producer.setName("Producer Thread");
-
-//        Consumer consumer = new Consumer(carousel);
-//        consumer.setName("Consumer Thread");
-
+        Consumer consumer = new Consumer(carousel);
+        Shuttle shuttle = new Shuttle(carousel);
         CarouselDrive driver = new CarouselDrive(carousel);
-        driver.setName("Driver Thread");
-
-        // TODO: InspectionBay
 
         // start threads
-//        consumer.start();
+        consumer.start();
         producer.start();
+        shuttle.start();
         driver.start();
 
         // check all threads still live
-        while (//consumer.isAlive() &&
+        while (consumer.isAlive() && 
                producer.isAlive() &&
+               shuttle.isAlive() &&
                driver.isAlive())
             try {
                 Thread.sleep(50);
@@ -38,7 +33,7 @@ public class Sim {
             }
 
         // interrupt other threads
-//        consumer.interrupt();
+        consumer.interrupt();
         producer.interrupt();
         driver.interrupt();
 
