@@ -70,11 +70,14 @@ public class InspectionBay extends VaccineHandlingThread {
     }
 
     private synchronized void tagAndInspectVial() throws InterruptedException {
-        if (vial != null) {
-            vial.setTagged();
-            vial.setInspected();
-            notifyAll();
-        }
+//        if (vial != null) {
+//            vial.setTagged();
+//            vial.setInspected();
+//            notifyAll();
+//        }
+        vial.setTagged();
+        vial.setInspected();
+        notifyAll();
     }
 
     /**
@@ -92,7 +95,7 @@ public class InspectionBay extends VaccineHandlingThread {
     public void run() {
         while (!isInterrupted()) {
             try {
-                if (vial != null) {
+                if (!isEmpty() && !isVialReadyForRemoval()) {
                     tagAndInspectVial();
 //                    System.out.println("InspectionBay complete " + vial);
                 }
