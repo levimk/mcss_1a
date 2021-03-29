@@ -1,8 +1,9 @@
 import java.util.Random;
 
 /**
- * A producer continually tries, at varying time intervals,
- * to put a vial onto a carousel
+ * A shuttle moves between the carousel (compartment 3, C3, specifically) and the inspection bay. It moves defective
+ * vials only from C3 to the inspection bay. Inversely, it moves inspected and tagged vials (tagged for destruction)
+ * from the inspection bay back to C3.
  */
 public class Shuttle extends VaccineHandlingThread {
 
@@ -12,13 +13,17 @@ public class Shuttle extends VaccineHandlingThread {
     protected InspectionBay inspectionBay;
     protected Vial vial;
     protected Position position;
+
+    /**
+     * Keep track of the where the shuttle is.
+     */
     private enum Position {
         CAROUSEL,
         INSPECTION_BAY
     }
 
     /**
-     * Create a new producer to feed a given carousel.
+     * Create a new shuttle and connect it to a carousel and an inspection bay.
      */
     Shuttle(Carousel carousel, InspectionBay inspectionBay) {
         super();
@@ -28,6 +33,9 @@ public class Shuttle extends VaccineHandlingThread {
         position = Position.CAROUSEL;
     }
 
+    /**
+     * Switch between the two possible positions of the carousel
+     */
     private void togglePosition() {
         if (position.equals(Position.CAROUSEL)) {
             position = Position.INSPECTION_BAY;
@@ -36,10 +44,13 @@ public class Shuttle extends VaccineHandlingThread {
         }
     }
 
-
-
     /**
-     * Continually tries to place vials on the carousel at random intervals.
+     * Continually attempt to either move defective vials back and forth between the carousel and the inspection bay.
+     * The shuttle can be in one of four states:
+     *   1. At the carousel removing up a new defective vial for inspection
+     *   2. At the carousel to return a defective vial that has been inspected and tagged
+     *   3. At the shuttle bay delivering a new defective vial for inspection and tagging
+     *   4. At the shuttle waiting for a the defective vial to be inspected and tagged
      */
     public void run() {
         while (!isInterrupted()) {
@@ -51,7 +62,7 @@ public class Shuttle extends VaccineHandlingThread {
                         vial = null;
                     } else {
 //                        Boolean needsInspection = carousel.isVialNeedsInspection(2);
-                        vial = carousel.getVialForInspection(2);
+                        vial = carousel.getVialForInspection();
                         System.out.println(indentation + vial + " [ c3 -> S  ]");
                         togglePosition();
                         sleep(Params.SHUTTLE_TIME);
@@ -73,6 +84,6 @@ public class Shuttle extends VaccineHandlingThread {
                 this.interrupt();
             }
         }
-        System.out.println("Producer terminated");
+        System.out.println("Shuttle terminated");
     }
 }

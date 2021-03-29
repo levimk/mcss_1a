@@ -24,7 +24,7 @@ public class Consumer extends VaccineHandlingThread {
     public void run() {
         while (!isInterrupted()) {
             try {
-                carousel.getVial(carousel.getLength() - 1);
+                carousel.getVial(carousel.getLength() - 1); // take the last vial in the carousel
 
                 // let some time pass ...
                 Random random = new Random();

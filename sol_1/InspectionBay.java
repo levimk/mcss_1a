@@ -1,8 +1,7 @@
 /**
- * The carousel holds vials of vaccine and rotates them from the compartment
- * at position 0, through to the scanner compartment, where they are
- * scanned and potentially removed by a shuttle for further inspection,
- * through to the final compartment where they are taken off the carousel.
+ * The carousel inspection bay receives a defective vial from the shuttle bay. It inspects it and tags it for
+ * destruction. In this implementation, the shuttle bay (see ShuttleBay) takes the inspected and tagged vial. The
+ * inspection bay only holds one vial at a time.
  */
 public class InspectionBay extends VaccineHandlingThread {
 
@@ -23,7 +22,7 @@ public class InspectionBay extends VaccineHandlingThread {
      * Insert a vial into the carousel.
      *
      * @param newVial
-     *            the vial to insert into the carousel.
+     *            the vial to insert into the inspection bay.
      * @throws InterruptedException
      *            if the thread executing is interrupted.
      */
@@ -42,20 +41,20 @@ public class InspectionBay extends VaccineHandlingThread {
     }
 
     /**
-     * Remove a vial from the final compartment of the carousel
+     * Remove the vial from the inspection bay
      *
      * @return the removed vial
      * @throws InterruptedException
      *             if the thread executing is interrupted
      */
     public synchronized Vial getVial() throws InterruptedException {
-        // while there is no vial in the final compartment, block this thread
-//        System.out.println("inspectionBay.getVial()");
+        // while there is no vial in the inspection bay, block this thread
 
+        // block the thread while the vial is still being inspected and tagged
         while (!isVialReadyForRemoval()) {
             wait();
         }
-//        System.out.println("Removing vial from inspection bay.");
+
         Vial removedVial = vial;
         vial = null;
 
@@ -64,23 +63,32 @@ public class InspectionBay extends VaccineHandlingThread {
         return removedVial;
     }
 
+    /**
+     * Check if the vial is ready to be removed
+     * @return true if the inspection bay is not empty and the vial is inspected and the vial is tagged, and
+     *              false otherwise
+     *
+     * @throws InterruptedException
+     *      *             if the thread executing is interrupted
+     */
     private synchronized Boolean isVialReadyForRemoval() throws InterruptedException {
-//        System.out.println("isReadyForRemoval: " + vial.isInspected() + " " + " " + vial.isTagged());
         if (!isEmpty()) {
             return vial.isInspected() && vial.isTagged();
         }
         return false;
     }
 
+    /**
+     * Tag and inspect the vial
+     * @throws InterruptedException
+     *      *             if the thread executing is interrupted
+     */
     private synchronized void tagAndInspectVial() throws InterruptedException {
         if (!isEmpty()) {
             vial.setTagged();
             vial.setInspected();
             notifyAll();
         }
-//        vial.setTagged();
-//        vial.setInspected();
-//        notifyAll();
     }
 
     /**
@@ -92,8 +100,7 @@ public class InspectionBay extends VaccineHandlingThread {
     }
 
     /**
-     * Move the carousel as often as possible, but only if there
-     * is a vial on the carousel which is not in the final compartment.
+     * Tag and inspect the vial in the inspection (if there is one).
      */
     public void run() {
         while (!isInterrupted()) {
@@ -101,19 +108,13 @@ public class InspectionBay extends VaccineHandlingThread {
                 if (!isEmpty() && !isVialReadyForRemoval()) {
                     Thread.sleep(Params.INSPECT_TIME);
                     tagAndInspectVial();
-//                    System.out.println("InspectionBay complete " + vial);
                 }
-//                Thread.sleep(Params.INSPECT_TIME);
-//                if (vial != null && isVialReadyForRemoval()) {
-//                    System.out.println("Vial ready");
-//                    Thread.sleep(Params.INSPECT_TIME);
-//                }
             } catch (InterruptedException e) {
                 this.interrupt();
             }
         }
 
-        System.out.println("CarouselDrive terminated");
+        System.out.println("InspectionBay terminated");
     }
 
     public String toString() {

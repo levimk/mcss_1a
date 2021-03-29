@@ -37,6 +37,8 @@ public class Sim {
         // interrupt other threads
         consumer.interrupt();
         producer.interrupt();
+        inspectionBay.interrupt();
+        shuttle.interrupt();
         driver.interrupt();
 
         System.out.println("Sim terminating");
