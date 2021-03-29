@@ -8,31 +8,23 @@ public class Carousel {
 
     // the items in the carousel segments
     protected Vial[] compartment;
-    protected int length;
-    protected volatile CarouselState state; // TODO: do I need volatile here?
+    protected int size;
 
     // to help format output trace
     final private static String indentation = "                  ";
 
-    protected enum CarouselState {
-        RUNNING,
-        STOPPED
-    }
-
-
     /**
      * Create a new, empty carousel, initialised to be empty.
      */
-    public Carousel() {
-        compartment = new Vial[Params.CAROUSEL_SIZE];
-        length = compartment.length;
-        state = CarouselState.RUNNING;
+    public Carousel(int size) {
+        compartment = new Vial[size];
+        this.size = size;
         for (int i = 0; i < compartment.length; i++) {
             compartment[i] = null;
         }
     }
 
-    public int getLength() { return length; };
+    public int getSize() { return size; };
 
     /**
      * Insert a vial into the carousel.
@@ -81,7 +73,7 @@ public class Carousel {
         vial = compartment[i];
         compartment[i] = null;
 
-        if (i == length - 1) {
+        if (i == size - 1) {
             // make a note of the event in output trace
             System.out.println(indentation + indentation + vial + " removed");
         }
@@ -104,24 +96,6 @@ public class Carousel {
         return vial;
     }
 
-//    public synchronized Boolean isVialNeedsInspection(int i) throws InterruptedException {
-//
-//        // while there is no vial in the final compartment, block this thread
-//        while (compartment[i] == null &&
-//               !compartment[i].isDefective() &&
-//                !compartment[i].isInspected()) {
-//            wait();
-//        }
-//
-//        // get the vial
-//        Boolean isDefective = compartment[i].isDefective();
-//        Boolean isInspected = compartment[i].isInspected();
-//
-//        // notify any waiting threads that the carousel has changed
-//        notifyAll();
-//        return isDefective && !isInspected;
-//    }
-
     /**
      * Rotate the carousel one position.
      * 
@@ -137,7 +111,7 @@ public class Carousel {
         while (isEmpty() || // do NOT rotate if I'm empty
         		compartment[compartment.length-1] != null || // do NOT rotate if my last compartment contains a vial
                 isVialInC3Defective() // do NOT rotate if compartment #3 has a DEFECTIVE vial
-                ) { // TODO: call isStopped here!
+                ) {
             wait();
         }
 
@@ -158,7 +132,6 @@ public class Carousel {
             compartment[i] = compartment[i-1];
         }
         compartment[0] = null;
-//        scan();
         
         // notify any waiting threads that the carousel has changed
         notifyAll();
@@ -169,29 +142,6 @@ public class Carousel {
             return compartment[2].isDefective();
         }
         return false;
-    }
-
-    // Do I even need these methods? Given that I have compartment[2].isDefective() guarding rotate()?
-    protected synchronized void scan() {
-        if (compartment[2].isDefective()) {
-            stopCarousel();
-        }
-    }
-
-    protected synchronized void stopCarousel() {
-        state = CarouselState.STOPPED;
-    }
-
-    protected synchronized void restartCarousel() {
-        state = CarouselState.RUNNING;
-    }
-
-    protected synchronized Boolean isStopped() {
-        return state.equals(CarouselState.STOPPED);
-    }
-
-    protected synchronized Boolean isRunning() {
-        return state.equals(CarouselState.RUNNING);
     }
  
     /**

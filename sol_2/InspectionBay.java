@@ -8,6 +8,7 @@ public class InspectionBay extends VaccineHandlingThread {
 
     // the items in the carousel segments
     protected Vial vial;
+    protected Carousel destroyerCarousel;
 
     // to help format output trace
     final private static String indentation = "                  ";
@@ -15,8 +16,9 @@ public class InspectionBay extends VaccineHandlingThread {
     /**
      * Create a new, empty carousel, initialised to be empty.
      */
-    public InspectionBay() {
+    public InspectionBay(Carousel carousel) {
         vial = null;
+        destroyerCarousel = carousel;
     }
 
     /**

@@ -9,22 +9,29 @@ public class Sim {
     public static void main(String[] args) {
         
     	// Create system components
-        Carousel carousel = new Carousel();
-        Producer producer = new Producer(carousel);
-        Consumer consumer = new Consumer(carousel);
-        InspectionBay inspectionBay = new InspectionBay();
-        Shuttle shuttle = new Shuttle(carousel, inspectionBay);
-        CarouselDrive driver = new CarouselDrive(carousel);
+        Carousel mainCarousel = new Carousel(Params.CAROUSEL_SIZE);
+
+        Producer producer = new Producer(mainCarousel);
+        Consumer distributor = new Consumer(mainCarousel);
+
+        Carousel destroyerCarousel = new Carousel(2);
+        Consumer destroyer = new Consumer(destroyerCarousel);
+
+        InspectionBay inspectionBay = new InspectionBay(destroyerCarousel);
+        Shuttle shuttle = new Shuttle(mainCarousel, inspectionBay);
+
+
+        CarouselDrive driver = new CarouselDrive(mainCarousel);
 
         // start threads
-        consumer.start();
+        distributor.start();
         producer.start();
         shuttle.start();
         inspectionBay.start();
         driver.start();
 
         // check all threads still live
-        while (consumer.isAlive() && 
+        while (distributor.isAlive() &&
                producer.isAlive() &&
                shuttle.isAlive() &&
                driver.isAlive())
@@ -35,9 +42,12 @@ public class Sim {
             }
 
         // interrupt other threads
-        consumer.interrupt();
+        distributor.interrupt();
         producer.interrupt();
+        shuttle.interrupt();
+        inspectionBay.interrupt();
         driver.interrupt();
+
 
         System.out.println("Sim terminating");
         System.out.println(VaccineHandlingThread.getTerminateException());
