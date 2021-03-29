@@ -21,20 +21,26 @@ public class Sim {
         Shuttle shuttle = new Shuttle(mainCarousel, inspectionBay);
 
 
-        CarouselDrive driver = new CarouselDrive(mainCarousel);
+        CarouselDrive mainDriver = new CarouselDrive(mainCarousel);
+        CarouselDrive destroyerDriver = new CarouselDrive(destroyerCarousel);
 
         // start threads
         distributor.start();
         producer.start();
         shuttle.start();
         inspectionBay.start();
-        driver.start();
+        destroyer.start();
+        destroyerDriver.start();
+        mainDriver.start();
 
         // check all threads still live
         while (distributor.isAlive() &&
                producer.isAlive() &&
                shuttle.isAlive() &&
-               driver.isAlive())
+                inspectionBay.isAlive() &&
+                destroyer.isAlive() &&
+                mainDriver.isAlive() &&
+                destroyerDriver.isAlive())
             try {
                 Thread.sleep(50);
             } catch (InterruptedException e) {
@@ -46,7 +52,9 @@ public class Sim {
         producer.interrupt();
         shuttle.interrupt();
         inspectionBay.interrupt();
-        driver.interrupt();
+        mainDriver.interrupt();
+        destroyerDriver.interrupt();
+        destroyer.interrupt();
 
 
         System.out.println("Sim terminating");
