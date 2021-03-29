@@ -9,9 +9,16 @@ public class Carousel {
     // the items in the carousel segments
     protected Vial[] compartment;
     protected int length;
+    protected volatile CarouselState state; // TODO: do I need volatile here?
 
     // to help format output trace
     final private static String indentation = "                  ";
+
+    protected enum CarouselState {
+        RUNNING,
+        STOPPED
+    }
+
 
     /**
      * Create a new, empty carousel, initialised to be empty.
@@ -19,6 +26,7 @@ public class Carousel {
     public Carousel() {
         compartment = new Vial[Params.CAROUSEL_SIZE];
         length = compartment.length;
+        state = CarouselState.RUNNING;
         for (int i = 0; i < compartment.length; i++) {
             compartment[i] = null;
         }
@@ -126,8 +134,10 @@ public class Carousel {
             throws InterruptedException, OverloadException {
         // if there is in the final compartment, or the carousel is empty,
         // or a vial needs to be removed for inspection, do not move the carousel
-        while (isEmpty() || 
-        		compartment[compartment.length-1] != null) {
+        while (isEmpty() || // do NOT rotate if I'm empty
+        		compartment[compartment.length-1] != null || // do NOT rotate if my last compartment contains a vial
+                isVialInC3Defective() // do NOT rotate if compartment #3 has a DEFECTIVE vial
+                ) { // TODO: call isStopped here!
             wait();
         }
 
@@ -148,9 +158,40 @@ public class Carousel {
             compartment[i] = compartment[i-1];
         }
         compartment[0] = null;
+//        scan();
         
         // notify any waiting threads that the carousel has changed
         notifyAll();
+    }
+
+    protected synchronized Boolean isVialInC3Defective() {
+        if (compartment[2] != null) {
+            return compartment[2].isDefective();
+        }
+        return false;
+    }
+
+    // Do I even need these methods? Given that I have compartment[2].isDefective() guarding rotate()?
+    protected synchronized void scan() {
+        if (compartment[2].isDefective()) {
+            stopCarousel();
+        }
+    }
+
+    protected synchronized void stopCarousel() {
+        state = CarouselState.STOPPED;
+    }
+
+    protected synchronized void restartCarousel() {
+        state = CarouselState.RUNNING;
+    }
+
+    protected synchronized Boolean isStopped() {
+        return state.equals(CarouselState.STOPPED);
+    }
+
+    protected synchronized Boolean isRunning() {
+        return state.equals(CarouselState.RUNNING);
     }
  
     /**
