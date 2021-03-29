@@ -11,7 +11,7 @@ public class Carousel {
     protected int size;
 
     // to help format output trace
-    final private static String indentation = "                  ";
+    final protected static String indentation = "                  ";
 
     /**
      * Create a new, empty carousel, initialised to be empty.
@@ -19,6 +19,14 @@ public class Carousel {
     public Carousel(int size) {
         compartment = new Vial[size];
         this.size = size;
+        for (int i = 0; i < compartment.length; i++) {
+            compartment[i] = null;
+        }
+    }
+
+    public Carousel() {
+        compartment = new Vial[Params.CAROUSEL_SIZE];
+        this.size = compartment.length;
         for (int i = 0; i < compartment.length; i++) {
             compartment[i] = null;
         }
@@ -75,12 +83,16 @@ public class Carousel {
 
         if (i == size - 1) {
             // make a note of the event in output trace
-            System.out.println(indentation + indentation + vial + " removed");
+            removeMessage(vial);
         }
 
         // notify any waiting threads that the carousel has changed
         notifyAll();
         return vial;
+    }
+
+    protected void removeMessage(Vial vial) {
+        System.out.println(indentation + indentation + vial + " removed");
     }
 
     public synchronized Vial getVialForInspection(int i) throws InterruptedException {
@@ -127,7 +139,7 @@ public class Carousel {
                 System.out.println(
                 		indentation +
                 		this.compartment[i-1] +
-                        " [ c" + (i) + " -> c" + (i+1) +" ]");
+                        " [ c" + (i) + " -> c" + (i+1) + " ] main carousel");
             }
             compartment[i] = compartment[i-1];
         }
@@ -137,7 +149,7 @@ public class Carousel {
         notifyAll();
     }
 
-    protected synchronized Boolean isVialInC3Defective() {
+    private synchronized Boolean isVialInC3Defective() {
         if (compartment[2] != null) {
             return compartment[2].isDefective();
         }
@@ -148,7 +160,7 @@ public class Carousel {
      * Check whether the carousel is currently empty.
      * @return true if the carousel is currently empty, otherwise false
      */
-    private boolean isEmpty() {
+    protected boolean isEmpty() {
         for (int i = 0; i < compartment.length; i++) {
             if (compartment[i] != null) {
                 return false;

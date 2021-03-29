@@ -41,33 +41,44 @@ public class Shuttle extends VaccineHandlingThread {
     /**
      * Continually tries to place vials on the carousel at random intervals.
      */
+    // TODO: update algorithm to NOT remove vials from the inspection bay
     public void run() {
         while (!isInterrupted()) {
             try {
                 if (position.equals(Position.CAROUSEL)) {
-                    if (vial != null) {
-                        carousel.putVial(vial, 2);
-                        System.out.println(indentation + vial + " [  S -> c3 ]");
-                        vial = null;
-                    } else {
-//                        Boolean needsInspection = carousel.isVialNeedsInspection(2);
-                        vial = carousel.getVialForInspection(2);
-                        System.out.println(indentation + vial + " [ c3 -> S  ]");
-                        togglePosition();
-                        sleep(Params.SHUTTLE_TIME);
-                    }
+//                    if (vial != null) {
+//                        carousel.putVial(vial, 2);
+//                        System.out.println(indentation + vial + " [  S -> c3 ]");
+//                        vial = null;
+//                    } else {
+////                        Boolean needsInspection = carousel.isVialNeedsInspection(2);
+//                        vial = carousel.getVialForInspection(2);
+//                        System.out.println(indentation + vial + " [ c3 -> S  ]");
+//                        togglePosition();
+//                        sleep(Params.SHUTTLE_TIME);
+//                    }
+                    vial = carousel.getVialForInspection(2);
+                    System.out.println(indentation + vial + " [ c3 -> S  ]");
+                    sleep(Params.SHUTTLE_TIME);
+                    togglePosition();
                 } else if (position.equals(Position.INSPECTION_BAY)) {
-                    if (vial != null) {
-                        inspectionBay.putVial(vial);
-                        System.out.println(indentation + vial + " [  S -> I  ]");
-                        vial = null;
-                    } else {
-                        vial = inspectionBay.getVial();
-                        System.out.println(indentation + vial + " [  I -> S  ]");
+                    inspectionBay.putVial(vial);
+                    System.out.println(indentation + vial + " [  S -> I  ]");
+                    vial = null;
+                    sleep(Params.SHUTTLE_TIME);
+                    togglePosition();
 
-                        togglePosition();
-                        sleep(Params.SHUTTLE_TIME);
-                    }
+//                    if (vial != null) {
+//                        inspectionBay.putVial(vial);
+//                        System.out.println(indentation + vial + " [  S -> I  ]");
+//                        vial = null;
+//                    } else {
+//                        vial = inspectionBay.getVial();
+//                        System.out.println(indentation + vial + " [  I -> S  ]");
+//
+//                        sleep(Params.SHUTTLE_TIME);
+//                        togglePosition();
+//                    }
                 }
             } catch (InterruptedException e) {
                 this.interrupt();

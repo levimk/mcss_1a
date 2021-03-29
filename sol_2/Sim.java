@@ -9,13 +9,13 @@ public class Sim {
     public static void main(String[] args) {
         
     	// Components of the main carousel subsystem
-        Carousel mainCarousel = new Carousel(Params.CAROUSEL_SIZE);
+        Carousel mainCarousel = new Carousel();
         CarouselDrive mainDriver = new CarouselDrive(mainCarousel);
         Producer producer = new Producer(mainCarousel);
         Consumer distributor = new Consumer(mainCarousel);
 
         // Components of the destroyer carousel subsystem
-        Carousel destroyerCarousel = new Carousel(2);
+        Carousel destroyerCarousel = new DestroyerCarousel();
         Consumer destroyer = new Consumer(destroyerCarousel);
         CarouselDrive destroyerDriver = new CarouselDrive(destroyerCarousel);
 

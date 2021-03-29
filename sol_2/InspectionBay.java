@@ -33,7 +33,7 @@ public class InspectionBay extends VaccineHandlingThread {
             throws InterruptedException {
 
         // while there is another vial in the way, block this thread
-        while (vial != null) {
+        while (!isEmpty()) {
             wait();
         }
 
@@ -50,24 +50,20 @@ public class InspectionBay extends VaccineHandlingThread {
      * @throws InterruptedException
      *             if the thread executing is interrupted
      */
-    public synchronized Vial getVial() throws InterruptedException {
-        // while there is no vial in the final compartment, block this thread
-//        System.out.println("inspectionBay.getVial()");
+    // TODO: delete this method? Not necessary anymore
+//    public synchronized Vial getVial() throws InterruptedException {
+//        while (!isVialReadyForDestruction()) {
+//            wait();
+//        }
+//        Vial removedVial = vial;
+//        vial = null;
+//
+//        // notify any waiting threads that the inspection bay has changed
+//        notifyAll();
+//        return removedVial;
+//    }
 
-        while (!isVialReadyForRemoval()) {
-            wait();
-        }
-//        System.out.println("Removing vial from inspection bay.");
-        Vial removedVial = vial;
-        vial = null;
-
-        // notify any waiting threads that the carousel has changed
-        notifyAll();
-        return removedVial;
-    }
-
-    private synchronized Boolean isVialReadyForRemoval() throws InterruptedException {
-//        System.out.println("isReadyForRemoval: " + vial.isInspected() + " " + " " + vial.isTagged());
+    private synchronized Boolean isVialReadyForDestruction() throws InterruptedException {
         if (!isEmpty()) {
             return vial.isInspected() && vial.isTagged();
         }
@@ -80,9 +76,6 @@ public class InspectionBay extends VaccineHandlingThread {
             vial.setInspected();
             notifyAll();
         }
-//        vial.setTagged();
-//        vial.setInspected();
-//        notifyAll();
     }
 
     /**
@@ -93,6 +86,12 @@ public class InspectionBay extends VaccineHandlingThread {
         return vial == null;
     }
 
+    public synchronized void sendVialToDestroyer() throws InterruptedException {
+        destroyerCarousel.putVial(vial, 0);
+        vial = null;
+        notifyAll();
+    }
+
     /**
      * Move the carousel as often as possible, but only if there
      * is a vial on the carousel which is not in the final compartment.
@@ -100,16 +99,12 @@ public class InspectionBay extends VaccineHandlingThread {
     public void run() {
         while (!isInterrupted()) {
             try {
-                if (!isEmpty() && !isVialReadyForRemoval()) {
+                if (isVialReadyForDestruction()) {
+                    sendVialToDestroyer();
+                } else {
                     Thread.sleep(Params.INSPECT_TIME);
                     tagAndInspectVial();
-//                    System.out.println("InspectionBay complete " + vial);
                 }
-//                Thread.sleep(Params.INSPECT_TIME);
-//                if (vial != null && isVialReadyForRemoval()) {
-//                    System.out.println("Vial ready");
-//                    Thread.sleep(Params.INSPECT_TIME);
-//                }
             } catch (InterruptedException e) {
                 this.interrupt();
             }
