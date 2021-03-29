@@ -38,52 +38,44 @@ public class Shuttle extends VaccineHandlingThread {
 
 
 
-    /**
-     * Continually tries to place vials on the carousel at random intervals.
+    /** TODO: finish this DOC
+     * Continually attempt to either move defective vials back and forth between the carousel and the inspection bay.
+     * The shuttle can be in one of four states:
+     *   1. At the carousel removing up a new defective vial for inspection
+     *   2. At the carousel to return a defective vial that has been inspected and tagged
+     *   3. At the shuttle bay delivering a new defective vial for inspection and tagging
+     *   4. At the shuttle waiting for a the defective vial to be inspected and tagged
      */
-    // TODO: update algorithm to NOT remove vials from the inspection bay
     public void run() {
         while (!isInterrupted()) {
             try {
                 if (position.equals(Position.CAROUSEL)) {
-//                    if (vial != null) {
-//                        carousel.putVial(vial, 2);
-//                        System.out.println(indentation + vial + " [  S -> c3 ]");
-//                        vial = null;
-//                    } else {
-////                        Boolean needsInspection = carousel.isVialNeedsInspection(2);
-//                        vial = carousel.getVialForInspection(2);
-//                        System.out.println(indentation + vial + " [ c3 -> S  ]");
-//                        togglePosition();
-//                        sleep(Params.SHUTTLE_TIME);
-//                    }
+                    // When at the carousel the shuttle will always be empty
+
+                    // Get the defective vial from compartment 3 of the carousel. . .
                     vial = carousel.getVialForInspection(2);
+
+                    // . . . Then take it to the inspection bay
                     System.out.println(indentation + vial + " [ c3 -> S  ]");
                     sleep(Params.SHUTTLE_TIME);
                     togglePosition();
                 } else if (position.equals(Position.INSPECTION_BAY)) {
+                    // When at the inspection bay the shuttle will always contain a defective vial that has not
+                    // yet been inspected and tagged
+
+                    // Put the defective vial in the inspection bay. . .
                     inspectionBay.putVial(vial);
                     System.out.println(indentation + vial + " [  S -> I  ]");
                     vial = null;
+
+                    // . . . Then head back to the carousel to get the next defective vial
                     sleep(Params.SHUTTLE_TIME);
                     togglePosition();
-
-//                    if (vial != null) {
-//                        inspectionBay.putVial(vial);
-//                        System.out.println(indentation + vial + " [  S -> I  ]");
-//                        vial = null;
-//                    } else {
-//                        vial = inspectionBay.getVial();
-//                        System.out.println(indentation + vial + " [  I -> S  ]");
-//
-//                        sleep(Params.SHUTTLE_TIME);
-//                        togglePosition();
-//                    }
                 }
             } catch (InterruptedException e) {
                 this.interrupt();
             }
         }
-        System.out.println("Producer terminated");
+        System.out.println("Shuttle terminated");
     }
 }

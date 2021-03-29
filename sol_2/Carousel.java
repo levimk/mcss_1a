@@ -14,7 +14,7 @@ public class Carousel {
     final protected static String indentation = "                  ";
 
     /**
-     * Create a new, empty carousel, initialised to be empty.
+     * Create a new, empty carousel with a specified number of compartments
      */
     public Carousel(int size) {
         compartment = new Vial[size];
@@ -24,6 +24,9 @@ public class Carousel {
         }
     }
 
+    /**
+     * Create a new, empty carousel, initialised to be empty with the default number of compartments.
+     */
     public Carousel() {
         compartment = new Vial[Params.CAROUSEL_SIZE];
         this.size = compartment.length;
@@ -32,6 +35,11 @@ public class Carousel {
         }
     }
 
+    /**
+     * Get the number of compartments
+     *
+     * @return an integer representing the number of compartments
+     */
     public int getSize() { return size; };
 
     /**
@@ -62,7 +70,8 @@ public class Carousel {
 
     /**
      * Remove a vial from the final compartment of the carousel
-     * 
+     *
+     * @param i : the compartment at i-1
      * @return the removed vial
      * @throws InterruptedException
      *             if the thread executing is interrupted
@@ -72,7 +81,7 @@ public class Carousel {
     	// the vial to be removed
         Vial vial;
 
-        // while there is no vial in the final compartment, block this thread
+        // while there is no vial in the specified compartment, block this thread
         while (compartment[i] == null) {
             wait();
         }
@@ -81,6 +90,7 @@ public class Carousel {
         vial = compartment[i];
         compartment[i] = null;
 
+        // print the removal message for the last
         if (i == size - 1) {
             // make a note of the event in output trace
             removeMessage(vial);
@@ -91,19 +101,34 @@ public class Carousel {
         return vial;
     }
 
+    /**
+     * Print a message indicating that a vial has been removed
+     * @param vial : the vial to be printed in the message
+     */
     protected void removeMessage(Vial vial) {
         System.out.println(indentation + indentation + vial + " removed");
     }
 
+    /**
+     * Get a vial specifically for inspection
+     *
+     * @param i : the vial at compartment i-1
+     * @return : the vial to sent to the inspection subsystem
+     */
     public synchronized Vial getVialForInspection(int i) throws InterruptedException {
         Vial vial;
+
+        // Block this thread if there is no vial or if the vial does not need to be inspected
         while (compartment[i] == null || // the compartment is empty
                 !compartment[i].isDefective() || // the vial in the compartment is not defective
                 compartment[i].isInspected()) { // the vial in the compartment has been inspected
             wait();
         }
+
+        // Take out the vial
         vial = compartment[i];
         compartment[i] = null;
+
         notifyAll();
         return vial;
     }
@@ -118,10 +143,11 @@ public class Carousel {
      */
     public synchronized void rotate() 
             throws InterruptedException, OverloadException {
+
         // if there is in the final compartment, or the carousel is empty,
         // or a vial needs to be removed for inspection, do not move the carousel
-        while (isEmpty() || // do NOT rotate if I'm empty
-        		compartment[compartment.length-1] != null || // do NOT rotate if my last compartment contains a vial
+        while (isEmpty() || // do NOT rotate if the carousel is empty
+        		compartment[compartment.length-1] != null || // do NOT rotate if the final compartment contains a vial
                 isVialInC3Defective() // do NOT rotate if compartment #3 has a DEFECTIVE vial
                 ) {
             wait();
@@ -149,6 +175,10 @@ public class Carousel {
         notifyAll();
     }
 
+    /**
+     * Check whether the vial in C3 is defective
+     * @return true if there is a vial in C3 and it is defective, otherwise false
+     */
     private synchronized Boolean isVialInC3Defective() {
         if (compartment[2] != null) {
             return compartment[2].isDefective();

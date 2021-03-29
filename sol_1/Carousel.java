@@ -116,7 +116,7 @@ public class Carousel {
      */
     public synchronized void rotate() 
             throws InterruptedException, OverloadException {
-        // if there is in the final compartment, or the carousel is empty,
+        // if there is a vial in the final compartment, or the carousel is empty,
         // or a vial needs to be removed for inspection, do not move the carousel
         while (isEmpty() || // do NOT rotate the carousel is empty
         		compartment[compartment.length-1] != null || // do NOT rotate if the last compartment contains a vial

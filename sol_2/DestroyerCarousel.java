@@ -1,14 +1,30 @@
+/**
+ * A subclass of the carousel, the destroyer is a specialised type of carousel for the defective vial recycling
+ * subsystem. It takes defective vials that have been inspected and tagged by the inspection bay. It gives defective
+ * vials to the destroyer consumer for destruction.
+ */
 public class DestroyerCarousel extends Carousel {
 
+    /**
+     * Create a new, empty destroyer carousel, initialised to be empty with default size of 2 compartments
+     */
     public DestroyerCarousel() {
         super(2);
     }
 
+    /**
+     * Rotate the carousel one position.
+     *
+     * @throws OverloadException
+     *             if a vial is rotated beyond the final compartment.
+     * @throws InterruptedException
+     *             if the thread executing is interrupted.
+     */
     @Override
     public synchronized void rotate()
             throws InterruptedException, OverloadException {
-        // if there is in the final compartment, or the carousel is empty,
-        // or a vial needs to be removed for inspection, do not move the carousel
+        // if there is a vial in the second compartment, or the carousel is empty,
+        // do not move the carousel
         while (isEmpty() || // do NOT rotate if I'm empty
                 compartment[compartment.length-1] != null ) { // do NOT rotate if my last compartment contains a vial
             wait();
@@ -32,12 +48,16 @@ public class DestroyerCarousel extends Carousel {
         }
         compartment[0] = null;
 
-        // notify any waiting threads that the carousel has changed
+        // notify any waiting threads that the destroyer carousel has changed
         notifyAll();
     }
 
+    /**
+     * Print a message indicating that a vial has been removed for destruction
+     * @param vial : the vial to be printed in the message
+     */
     @Override
     protected void removeMessage(Vial vial) {
-        System.out.println(indentation + indentation + vial + " destroyed");
+        System.out.println(indentation + indentation + vial + " removed (for destruction)");
     }
 }

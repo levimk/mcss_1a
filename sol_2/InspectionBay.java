@@ -10,11 +10,8 @@ public class InspectionBay extends VaccineHandlingThread {
     protected Vial vial;
     protected Carousel destroyerCarousel;
 
-    // to help format output trace
-    final private static String indentation = "                  ";
-
     /**
-     * Create a new, empty carousel, initialised to be empty.
+     * Create a new, empty inspection bay, initialised to be empty. Connect it to a destroyer carousel.
      */
     public InspectionBay(Carousel carousel) {
         vial = null;
@@ -44,25 +41,11 @@ public class InspectionBay extends VaccineHandlingThread {
     }
 
     /**
-     * Remove a vial from the final compartment of the carousel
+     * Check if the defective vial is ready for destruction
      *
-     * @return the removed vial
+     * @return true if there is a vial and it is ready to be destroyer, false otherwise
      * @throws InterruptedException
-     *             if the thread executing is interrupted
      */
-    // TODO: delete this method? Not necessary anymore
-//    public synchronized Vial getVial() throws InterruptedException {
-//        while (!isVialReadyForDestruction()) {
-//            wait();
-//        }
-//        Vial removedVial = vial;
-//        vial = null;
-//
-//        // notify any waiting threads that the inspection bay has changed
-//        notifyAll();
-//        return removedVial;
-//    }
-
     private synchronized Boolean isVialReadyForDestruction() throws InterruptedException {
         if (!isEmpty()) {
             return vial.isInspected() && vial.isTagged();
@@ -70,6 +53,11 @@ public class InspectionBay extends VaccineHandlingThread {
         return false;
     }
 
+    /**
+     * Tag and inspect the vial then notify other threads of the change
+     *
+     * @throws InterruptedException
+     */
     private synchronized void tagAndInspectVial() throws InterruptedException {
         if (!isEmpty()) {
             vial.setTagged();
@@ -93,8 +81,7 @@ public class InspectionBay extends VaccineHandlingThread {
     }
 
     /**
-     * Move the carousel as often as possible, but only if there
-     * is a vial on the carousel which is not in the final compartment.
+     * Continuously either (1) inspect and tag the vial or (2) send the vial off for destruction
      */
     public void run() {
         while (!isInterrupted()) {
@@ -110,11 +97,11 @@ public class InspectionBay extends VaccineHandlingThread {
             }
         }
 
-        System.out.println("CarouselDrive terminated");
+        System.out.println("InspectionBay terminated");
     }
 
     public String toString() {
-        return "Inspection Bar: " + vial.toString();
+        return "Inspection Bay: " + vial.toString();
     }
 
 }

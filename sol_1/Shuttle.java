@@ -56,23 +56,31 @@ public class Shuttle extends VaccineHandlingThread {
         while (!isInterrupted()) {
             try {
                 if (position.equals(Position.CAROUSEL)) {
+                    // When at the carousel the shuttle will either be empty or contain an inspected and tagged vial
                     if (vial != null) {
+                        // It has an inspected and tagged vial, so try to put it back on the carousel
                         carousel.putVial(vial, 2);
                         System.out.println(indentation + vial + " [  S -> c3 ]");
                         vial = null;
                     } else {
-//                        Boolean needsInspection = carousel.isVialNeedsInspection(2);
+                        // It does not have a vial yet so try to get a defective that is not tagged and inspected
+                        // from compartment 3 of the carousel
                         vial = carousel.getVialForInspection();
                         System.out.println(indentation + vial + " [ c3 -> S  ]");
                         togglePosition();
                         sleep(Params.SHUTTLE_TIME);
                     }
                 } else if (position.equals(Position.INSPECTION_BAY)) {
+                    // When at the inspection bay the shuttle will either be empty or contain a defective vial that
+                    // has not been inspected and tagged yet
                     if (vial != null) {
+                        // The shuttle has a new defective vial that needs to be inspected and tagged
                         inspectionBay.putVial(vial);
                         System.out.println(indentation + vial + " [  S -> I  ]");
                         vial = null;
                     } else {
+                        // It does not have a vial yet so try to get get the vial from the inspection bay once it has
+                        // been tagged and inspected
                         vial = inspectionBay.getVial();
                         System.out.println(indentation + vial + " [  I -> S  ]");
 
